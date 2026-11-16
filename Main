@@ -1,37 +1,128 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <cctype>
+#include <limits>
+
 using namespace std;
 
-int main()
-{
-    //VARIABLES PARA MENU Y OPCIONES DE MENU
-    int user = 0; //entradas de menu
-    char exit = 'n'; //entrada de confirmacion de salida
-    int info = 0;
-    int metod = 0;
+enum OpcMenu {infoMetod = 1, cifradoDescifrado, salir};
+enum MetodInfo{cesar1 = 1,morse1,traspo1,a1z26_1,atbash1,atras1};
+enum Cifrados {cesar2 = 1,morse2,traspo2,a1z26_2,atbash2,atras2};
 
-    //VARIABLES PARA CIFRADO Y DESCIFRADO DE ATBASH
-    string palabra;//codigo a cifrar o descifrar
-    string cifrado = "0"; // funciona para elegir cual función
+// Funcion para cifrar texto a A1Z26
+string cifrarA1Z26(const string& txt) {
+    string result = "";
+    for (size_t i = 0; i < txt.length(); ++i) {
+        char c = txt[i];
+        if (isalpha(c)) {
+            char base = isupper(c) ? 'A' : 'a';
+            int num = (c - base) + 1;
+            result += to_string(num) + " ";
+        } else if (isdigit(c)) {
+            result += "[num:" + string(1, c) + "] ";
+        } else {
+            result += c;
+            if (c != ' ') {
+                result += " ";
+            }
+        }
+    }
+    return result;
+}
+
+// Funcion para descifrar A1Z26 a texto
+string descifrarA1Z26(const string& code) {
+    string result = "";
+    stringstream ss(code);
+    string token;
+
+    while (ss >> token) {
+        if (token.rfind("[num:", 0) == 0) {
+            char dig = token[5];
+            result += dig;
+        } else {
+            bool esNum = true;
+            for (char c : token) {
+                if (!isdigit(c)) {
+                    esNum = false;
+                    break;
+                }
+            }
+
+            if (esNum) {
+                int num = stoi(token);
+                if (num >= 1 && num <= 26) {
+                    result += (char)('A' + num - 1);
+                } else {
+                    result += token;
+                }
+            } else {
+                result += token;
+            }
+        }
+    }
+    return result;
+}
+
+int main() {
+    // VARIABLES PARA MENU Y OPCIONES DE MENU
+    string user;
+    int usuario = 0;
+    char exit = 'n';
+    string exitUser;
+    int info = 0;
+    string infoUser;
+    int metod = 0;
+    string metodos;
+
+
+    // VARIABLES PARA CIFRADO Y DESCIFRADO DE ATBASH
+    string palabra;
+    string cifrado = "0"; // Funciona para elegir cual funcion
     bool minusc = 0;
 
+    // VARIABLES PARA CIFRADO Y DESCIFRADO DE A1Z26
+    int opc = 0;
+    bool avnzr = true;
+    int contC = 0;
+    int contD = 0;
+    bool conf = 0;
+    string entr;
+
+    //VARIABLES PARA CIFRADO Y DESCIFRADO POR TRANSPOSCISIÓN
+    string word;
+    string frase;
+    vector <string>lista;
+    int option;
+
     do {
-        //MENU DE INICIO
+        // MENU DE INICIO
         cout << "CYPH3R (programa de cifrado y descifrado de mensajes)" << endl;
         cout << "Menu" << endl;
         cout << "1. Informacion sobre los metodos de cifrado" << endl;
         cout << "2. Cifrar/Descifrar mensaje" << endl;
         cout << "3. Salir" << endl;
-        cout << "Seleccione el numero de la opcion que desea visualizar: "; //entrada de menu
-        cin >> user;
-        cin.ignore();
-        while(user < 1 || user > 4){ //mejorar la condicion para que no acepte datos invalidos o demasiados numeros (se me vuelve loco si pongo letras)
-            cout << "Dato invalido. Ingrese nuevamente: ";
-            cin >> user;
-        }
+        cout << "Seleccione el numero de la opcion que desea visualizar: ";
+        getline(cin, user);
 
-        switch(user){
-            case 1:
+        while(user != "1" && user != "2" && user != "3"){ //si lo pongo en default, me vuelve a imprimir el menu. No quiero eso
+            cout << "Dato invalido. Ingrese nuevamente: ";
+            getline(cin, user);
+        }
+        if(user == "1"){
+            usuario = 1;
+        } else if (user == "2"){
+            usuario = 2;
+        } else {
+            usuario = 3;
+        }
+        OpcMenu menu = static_cast<OpcMenu>(usuario);
+
+        switch(menu){
+            case infoMetod:{
                 cout << "Metodos de cifrado en el programa" << endl;
                 cout << "1. Cifrado Cesar" << endl;
                 cout << "2. Codigo Morse" << endl;
@@ -40,146 +131,266 @@ int main()
                 cout << "5. Cifrado Atbash" << endl;
                 cout << "6. Atras" << endl;
                 cout << "Seleccione la opcion que desea visualizar: ";
-                cin >> info;
-                cin.ignore();
-                while(info < 1 || info > 6){ //mejorar la condicion para que no acepte datos invalidos o demasiados numeros (se me vuelve loco si pongo letras)
+                getline(cin,infoUser);
+                while(infoUser != "1" && infoUser != "2" && infoUser != "3" && infoUser != "4" && infoUser != "5" && infoUser != "6"){
                     cout << "Dato invalido. Ingrese nuevamente: ";
-                    cin >> info;
+                    getline(cin, infoUser);
                 }
-                switch(info){
-                    case 1: //info de los metodos
-                        cout << "Info sobre cifrado cesar" << endl; //Completar
-                        cout << endl << "Presione enter para continuar: " << endl;
-                        //necesito retener el programa hasta que el usuario presione enter o cualquier tecla
-                        break;
-                    case 2:
-                        cout << "Info sobre codigo morse" << endl; //Completar
-                        cout << endl << "Presione enter para continuar: " << endl;
-                        //necesito retener el programa hasta que el usuario presione enter o cualquier tecla PENDIENTE
-                        break;
-                    case 3:
-                        cout << "Info sobre cifrado por transpocision" << endl; //Completar
-                        cout << endl << "Presione enter para continuar: " << endl;
-                        //necesito retener el programa hasta que el usuario presione enter o cualquier tecla PENDIENTE
-                        break;
-                    case 4:
-                        cout << "Info sobre cifrado A1Z26" << endl; //Completar
-                        cout << endl << "Presione enter para continuar: " << endl;
-                        //necesito retener el programa hasta que el usuario presione enter o cualquier tecla PENDIENTE
-                        break;
-                    case 5:
-                        cout << "Info sobre cifrado Atbash" << endl; //Completar
-                        cout << endl << "Presione enter para continuar: " << endl;
-                        //necesito retener el programa hasta que el usuario presione enter o cualquier tecla PENDIENTE
+                if(infoUser == "1"){
+                    info = 1;
+                } else if (infoUser == "2"){
+                    info = 2;
+                } else if (infoUser == "3"){
+                    info = 3;
+                } else if (infoUser == "4"){
+                    info = 4;
+                } else if(infoUser == "5") {
+                    info = 5;
+                } else if(infoUser == "6") {
+                    info = 6;
                 }
+                MetodInfo infoMetodos = static_cast<MetodInfo>(info);
+
+                switch(infoMetodos){
+                    case cesar1:
+                        cout << "Info sobre cifrado cesar" << endl;
+                        cout << endl << "Presione enter para regresar al menu: ";
+                        cin.get();
+                        break;
+                    case morse1:
+                        cout << "Info sobre codigo morse" << endl;
+                        cout << endl << "Presione enter para regresar al menu: ";
+                        cin.get();
+                        break;
+                    case traspo1:
+                        cout << "Info sobre cifrado por transposicion" << endl;
+                        cout << endl << "Presione enter para regresar al menu: ";
+                        cin.get();
+                        break;
+                    case a1z26_1:
+                        cout << "Info sobre cifrado A1Z26" << endl;
+                        cout << endl << "Presione enter para regresar al menu: ";
+                        cin.get();
+                        break;
+                    case atbash1:
+                        cout << "Info sobre cifrado Atbash" << endl;
+                        cout << endl << "Presione enter para regresar al menu: ";
+                        cin.get();
+                        break;
+                    case atras1:
+                        break;
+                }}
                 break;
-            case 2: //cifrar o descifrar
+
+            case cifradoDescifrado:{
                 cout << "Cifrados disponibles" << endl;
                 cout << "1. Cifrado Cesar" << endl;
                 cout << "2. Codigo Morse" << endl;
                 cout << "3. Cifrado por Transposicion" << endl;
                 cout << "4. Cifrado A1Z26" << endl;
                 cout << "5. Cifrado Atbash" << endl;
+                cout << "6. Atras" << endl;
                 cout << "Seleccione la opcion que desea visualizar: ";
-                cin >> metod;
-                cin.ignore();
-                while(metod < 1 || metod > 5){ //mejorar la condicion para que no acepte datos invalidos o demasiados numeros (se me vuelve loco si pongo letras)
+                getline(cin, metodos);
+                while(metodos != "1" && metodos != "2" && metodos != "3" && metodos != "4" && metodos != "5" && metodos != "6"){
                     cout << "Dato invalido. Ingrese nuevamente: ";
-                    cin >> metod;
-                    cin.ignore();
+                    getline(cin, metodos);
                 }
-                switch(metod){
-                    case 1:
-                        cout << "Trabajando en ello :)" << endl;
-                        break;
-                    case 2:
-                        cout << "Trabajando en ello :)" << endl;
-                        break;
-                    case 3:
-                        cout << "Trabajando en ello :)" << endl;
-                        break;
-                    case 4:
-                        cout << "Trabajando en ello :)" << endl;
-                        break;
-                    case 5:
-                        cout << "Cifrado y Descifrado Atbash" << endl;
-                        cout << "Deseas cifrar(1) o descifrar(0)? " << endl;
-                        getline(cin,cifrado); //getline lee toda la linea
+                if(metodos == "1"){
+                    metod = 1;
+                } else if (metodos == "2"){
+                    metod = 2;
+                } else if (metodos == "3"){
+                    metod = 3;
+                } else if (metodos == "4"){
+                    metod = 4;
+                } else if(metodos == "5") {
+                    metod = 5;
+                } else if(metodos == "6") {
+                    metod = 6;
+                }
+                Cifrados cifrados = static_cast<Cifrados>(metod);
 
-                        //valida que el valor ingresado sea 0 o 1
-                        while (cifrado != "0" && cifrado != "1") {
-                            cout << "Ingresa un valor valido: " << endl;
-                            getline (cin,cifrado);
+
+                switch(cifrados){
+                    case cesar2:
+                        cout << "Trabajando en ello :)" << endl;
+                        break;
+                    case morse2:
+                        cout << "Trabajando en ello :)" << endl;
+                        break;
+                    case traspo2:
+                        {cout << "Desea cifrar (1) O Descifrar (0)?";
+                        cin >> option;
+                        cin.ignore();
+
+                        cout <<"Escribe una palabra o frase:";
+                        getline(cin,frase);//lee todo
+
+                        stringstream ss (frase); //convertir variable a frase
+                        while (ss >> word){
+                            lista.push_back(word); //agregar las palabras en formato de lista
+
                         }
-                        // se utiliza para imprimer, si "cifrar" o "descifrar", segun el número ingresado por el usuario
-                        if (cifrado == "1") {
-                            cout << "Ingrese codigo a cifrar en minusculas: " << endl;
-                            getline(cin,palabra);
+
+                        if(option == 1 ){
+                        cout << "\ncifrado: ";
+                        }else{
+                        cout << "\ndecifrado: ";
                         }
-                        else {
-                            cout << "Ingrese codigo a descifrar en minusculas: " << endl;
-                            getline(cin,palabra);
+
+                        for( int i = 0 ;i<lista.size (); i++){
+                            reverse(lista[i].begin(), lista [i].end());//empieza y termina la palabra y reverse voltea alrevez las palabras
+                            cout <<lista [i] <<" ";
                         }
-                        // se evalua que todos los caracteres del string palabra sean minusculas
-                        do {
-                            minusc = true;
-                            //Se recorre todo el string mediante indices, para corroborar que solo se hallan ingresado minusculas
-                            for(int i = 0; i < palabra.length(); i ++) {
-                                if (palabra[i] < 'a' || palabra[i] > 'z'){
-                                    if (palabra[i]!=' ') {
-                                        minusc = false; // si algún carácter es diferente de una letra minuscula se asigna valor falso
-                                        break; // al detectar un solo carácter diferente de una letra minuscula, se sale del ciclo for
+                        cout << endl;
+                        break;}
+                    case a1z26_2:
+                        avnzr = true; // Reiniciamos para que funcione si vuelven a entrar
+                        while (avnzr == true) {
+                            cout << "--- Cifrado A1Z26 ---" << endl;
+                            cout << "0. Salir" << endl;
+                            cout << "1. Cifrar texto" << endl;
+                            cout << "2. Descifrar numeros" << endl;
+                            cout << "Elige una opcion (0, 1 o 2): " << endl;
+
+                            if (!(cin >> opc)) {
+                                cout << "Error. Entrada invalida. Vuelvalo a intentar." << endl;
+                                cin.clear();
+                                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                                continue;
+                            }
+                            cin.ignore();
+
+                            switch (opc) {
+                                case 0: {
+                                    cout << "Esta seguro de que quiere salir? (Si = 1/No = 0 o cualquier otra tecla)" << endl;
+                                    cin >> conf;
+                                    if (conf == 1) {
+                                        cout << "Gracias por utilizar nuestro programa!" << endl;
+                                        avnzr = false;
                                     }
+                                    break;
+                                }
+                                case 1: {
+                                    cout << "Introduce el texto a cifrar: " << endl;
+                                    getline(cin, entr);
+                                    string cypher = cifrarA1Z26(entr);
+                                    cout << endl << "Resultado cifrado:" << endl << cypher << endl;
+                                    contC++;
+                                    cout << "Cantidad de mensajes cifrados: " << contC << endl << "Descifrados: " << contD << endl << "Total: " << contC + contD << endl;
+                                    break;
+                                }
+                                case 2: {
+                                    cout << "Introduce el mensaje cifrado (numeros separados por espacios):" << endl;
+                                    getline(cin, entr);
+                                    string decypher = descifrarA1Z26(entr);
+                                    cout << endl << "Resultado descifrado:" << endl << decypher << endl;
+                                    contD++;
+                                    cout << "Cantidad de mensajes cifrados: " << contC << endl << "Descifrados: " << contD << endl << "Total: " << contC + contD << endl;
+                                    break;
+                                }
+                                default: {
+                                    cout << "Error. Entrada invalida. Vuelvalo a intentar." << endl;
+                                    break;
                                 }
                             }
-
-                            if (minusc == false){
-                                cout << "Ingrese un codigo en minusculas: " << endl; // Solicita nuevamente el codigo
-                                getline(cin,palabra);
-                            }
-
-                        } while (minusc == false);
-
-                        //se recorre el string carácter por carácter
-                        for (int i= 0; i < palabra.length(); i ++) {
-                            // si el caracter no es un espacio lo invierte
-                            if(palabra[i] != ' '){
-                            // se utiliza el código ASCII para imprimir la letra contraria
-                            palabra[i] = 'z'- (palabra[i]- 'a');
-                            // 122 - (n - 97)
-                            }
-                            cout << palabra[i];
                         }
-                        cout << endl;
-                }
-                break;
-            case 3: //si el usuario elige 3. Salir se le pide confirmacion
-                cout << "Seguro que desea salir (si = s / no = n): ";
-                cin >> exit; //entrada de confirmacion de salida
-                switch(exit){
-                    case 's':
-                        cout << "Hasta nunca :D";
-                        return 0; //el programa termina
                         break;
-                    case 'n':
-                        user = 0; //se modifica la variable de salida para repetir el menu
-                        cout << endl;
-                    default: //datos invalidos
-                        while(user == 3){ //usar getline en vez de cin para solo recibir un caracter y validarlo.
-                            cout << "Dato invalido. Ingrese nuevamente: ";
-                            cin >> exit;
-                            if(exit == 's'){
-                                cout << "Hasta nunca :D";
-                                return 0;
-                            } else if(exit == 'n') {
-                            user = 0;
-                            }
+                    case atbash2: { // Atbash actualizado correctamente
+                        char s = 's';
+                        cout << "Cifrado y Descifrado Atbash" << endl;
+                        cout << "Deseas cifrar(1) o descifrar(0)? " << endl;
+                        getline(cin, cifrado);
+
+                        // Valida que l valor ingresado sea 0 o 1
+                        while (cifrado != "0" && cifrado != "1") {
+                            cout << "Ingresa un valor valido: " << endl;
+                            getline(cin, cifrado); // Getline lee toda la linea
                         }
+                        cout << endl; // Mejorar interfaz
+
+                        // Se utiliza para imprimir, si "cifrar" o "descifrar", segun el metodo ingresado por el usuario
+                        while (s == 's') {
+                            if (cifrado == "1") {
+                                cout << "Ingrese mensaje a cifrar en minusculas: ";
+                                getline(cin, palabra);
+                            } else {
+                                cout << "Ingrese mensaje a descifrar en minusculas: ";
+                                getline(cin, palabra);
+                            }
+
+                            // Se evalua que todos los caracteres del string palabra sean minusculas
+                            do {
+                                minusc = true;
+                                // Se recorre todo el string mediante indices, para corroborar que solo se ingresaron minusculas
+                                for(int i = 0; i < palabra.length(); i++) {
+                                    if (palabra[i] < 'a' || palabra[i] > 'z'){
+                                        if (palabra[i] != ' ') {
+                                            minusc = false;
+                                            // Si algun caracter es diferente de una letra minuscula se asigna valor falso
+                                            break; // Al detectar un solo caracter diferente a una letra minuscula, se sale del ciclo for
+                                        }
+                                    }
+                                }
+
+                                if (minusc == false){
+                                    cout << "Ingrese un mensaje en minusculas: " << endl;
+                                    // Solicita nuevamente el mensaje
+                                    getline(cin, palabra);
+                                }
+
+                            } while (minusc == false);
+
+                            // Personaliza el mensaje segun el metodo elegido
+                            if (cifrado == "1"){
+                                cout << "Mensaje cifrado: ";
+                            } else {
+                                cout << "Mensaje descifrado: ";
+                            }
+
+                            // Se utiliza el codigo ASCII para imprimir la letra contraria
+                            for (int i = 0; i < palabra.length(); i++) {
+                                if(palabra[i] != ' '){
+                                    palabra[i] = 'z' - (palabra[i] - 'a');
+                                }
+                                cout << palabra[i];
+                            }
+                            cout << endl << endl; // Mejorar interfaz
+
+                            if (cifrado == "1") {
+                                cout << "Si desea cifrar alguna otra palabra con Atbash ingrese s, sino ingrese cualquier otra letra: ";
+                                cin >> s;
+                            } else {
+                                cout << "Si desea descifrar alguna otra palabra con Atbash ingrese s, sino ingrese cualquier otra letra: ";
+                                cin >> s;
+                            }
+                            cin.ignore();
+                            cout << endl; // Mejorar iterfaz
+                        }
+                        break;
+                    }
+                    case atras2:
+                        break;
                 }
-                break;
-        }
-    }while(user != 3);
+                break;}
+
+            case salir: // Salir
+                cout << "Seguro que desea salir (si = s / no = n): ";
+                getline(cin,exitUser);
+                while(exitUser != "s" && exitUser != "n"){
+                    cout << "Dato invalido. Ingrese nuevamente: ";
+                    getline(cin,exitUser);
+                }
+                if(exitUser == "s"){
+                    cout << "Hasta nunca :D";
+                    return 0;
+                } else if(exitUser == "n") {
+                    user = "0";
+                    cout << endl;
+                }
+            }
+    } while(user != "3");
 
     return 0;
 }
-
